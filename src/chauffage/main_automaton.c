@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include "g_tempPid.h"
 
 #define MINV(a,b) (((a)>(b)) ? (b):(a))
 #define MAXV(a,b) (((a)<(b)) ? (b):(a))
@@ -73,15 +74,11 @@ static void fcnt_set_pwm(t_type_event event);
 static void fcnt_stop_asser(t_type_event event);
 static void fcnt_blink(t_type_event event);
 static void fcnt_meas(t_type_event event);
-static void fcnt_blink_bad(t_type_event event);
 static void fcnt_locked(t_type_event event);
 static void fcnt_compute_pid(t_type_event event);
-static void fcnt_blink_test(t_type_event event);
 static void fcnt_init_test(t_type_event event);
-static void fcnt_unlock(t_type_event event);
 
 
-static const t_automaton_state stateLocked[];
 
 
 
@@ -89,19 +86,10 @@ static const t_automaton_state stateInit[]=
 {
 		  { EVT_INIT_HARD,		fcnt_init,				NULL },
 		  { EVT_RESULT_MEAS,	fcnt_compute_pid,		NULL },
-		  { EVT_UNLOCKED,		fcnt_none,				NULL },
-		  { EVT_TIMER_LOCKED,	fcnt_blink,			stateLocked },
 		  END_TBL()
 };
 
 
-static const t_automaton_state stateLocked[]=
-
-{
-{ EVT_RESULT_MEAS,		fcnt_locked,			NULL },
-{ EVT_UNLOCKED,			fcnt_unlock,		    stateInit },
-END_TBL()
-};
 
 
 
@@ -115,7 +103,6 @@ static const t_automaton_state stateHook[]=
 {
   { EVT_NONE,           fcnt_none,               NULL },
   { EVT_BLINK,			fcnt_blink,				 NULL },
-  { EVT_BAD,			fcnt_blink_bad,			 NULL },
   { EVT_SET_PWM,		fcnt_set_pwm,		     NULL },
   { EVT_ASK_MEAS,		fcnt_meas,			     NULL },
 
@@ -141,8 +128,22 @@ static uint16_t change_blink_cadence;
 
 static void fcnt_set_pwm(t_type_event event)
 {
-heater_setPwm(event.stv.data/256);
-
+event.stv.data = MINV(255,event.stv.data);
+uint8_t pwm = MINV(event.stv.data,params.pwm_max);
+pwm = MAXV(pwm,params.pwm_min);
+heater_setPwm(pwm);
+if (!status.actif || !params.enabled)
+	{
+	pwm=0;
+	heater_setPwm(pwm);
+	heater_setFan(0);
+	return;
+	}
+uint16_t xx= (params.fan_max-params.fan_min)*pwm;
+xx = params.fan_min+xx/256;
+xx = MINV(xx,params.fan_max);
+xx = MAXV(xx,params.fan_min);
+heater_setFan(xx);
 }
 
 
@@ -158,18 +159,19 @@ PUSH(EVT_BAD);
 
 static void fcnt_init(t_type_event event)
 {
-value_pwm = 23000;
+value_pwm = 0;
 PUSH_D(EVT_SET_PWM,value_pwm );
 
 
 
 
 
-pid_init();
-pid_reset();				// Initialiser avec les valeurs par defaut.
+pid_reset(&pid_values);
 PUSH(EVT_ASK_MEAS);
 PUSH(EVT_BAD);
-change_blink_cadence = 0;			// Est modifie si consigne NFC
+DEL_TIMER(EVT_BLINK)
+TIMER(4000,EVT_BLINK);
+
 }
 
 
@@ -180,57 +182,56 @@ static void fcnt_stop_asser(t_type_event event)
 
 static void fcnt_blink(t_type_event event)
 {
-DEL_TIMER(EVT_BAD);
-if (GET_LED_GREEN())
+static uint8_t flg_on = 0;
+
+if (!params.leds_report)
 	{
 	SET_LED_GREEN(0);
-	TIMER(1980,EVT_BLINK);
-	}
-else
-	{
-	SET_LED_GREEN(1);
-	TIMER(20,EVT_BLINK);
-	}
-}
-
-
-static void fcnt_blink_bad(t_type_event event)
-{
-DEL_TIMER(EVT_BLINK);
-if (GET_LED_RED())
-	{
 	SET_LED_RED(0);
-	TIMER(100,EVT_BAD);
+	SET_LED_BLUE(0);
+	TIMER(4000,EVT_BLINK);
+	return;
 	}
+if (!status.actif || !params.enabled)
+		{
+		TOGGLE_LED_GREEN()
+		TIMER(4000,EVT_BLINK);
+		return;
+		}
 else
 	{
-	SET_LED_RED(1);
-	if (change_blink_cadence)
-		TIMER(400,EVT_BAD);
-	else
-		TIMER(100,EVT_BAD);
-
-	}
-}
-
-
-
-
-
-static void fcnt_blink_test(t_type_event event)
-{
-	DEL_TIMER(EVT_BLINK);
-	if (GET_LED_GREEN())
+	flg_on = !flg_on;
+	if (!flg_on)
 		{
 		SET_LED_GREEN(0);
-		TIMER(1000,EVT_BAD);
+		SET_LED_RED(0);
+		SET_LED_BLUE(0);
+		TIMER(300,EVT_BLINK);
+		return;
+		}
+	int16_t error = pid_get_error();
+	// Plus l'erreur est grande, plus le ON sera long
+	if (error>0)
+		{
+		SET_LED_BLUE(0)
+		SET_LED_RED(1);
+		TIMER(MINV(4000,error*10),EVT_BLINK);
 		}
 	else
 		{
-		SET_LED_GREEN(1);
-		TIMER(1000,EVT_BAD);
+		SET_LED_BLUE(1)
+		SET_LED_RED(0);
+		TIMER(MINV(4000,-error*10),EVT_BLINK);
 		}
 	}
+}
+
+
+
+
+
+
+
 
 static void fcnt_meas(t_type_event event)
 {
@@ -248,71 +249,16 @@ static void fcnt_compute_pid(t_type_event event)
 // Mesure et résultat sous forme d'une tension entre 0  et 3300mV
 uint16_t reference_deciDeg=event.stv.data;
 int16_t te=pid_compute(reference_deciDeg);
-int16_t error = pid_get_error();
-if (te>=0)
-	{
-	value_pwm =value_pwm-MINV(value_pwm,te);
-
-	}
-else
-	{
-	value_pwm =value_pwm+MINV(65534-value_pwm,-te);
-	}
+if (te<0)
+	te=0;
+value_pwm =te;
 PUSH_D(EVT_SET_PWM,value_pwm );
-TIMER(700,EVT_ASK_MEAS);
-
-if (abs(error)>20)
-	{
-	DEL_TIMER(EVT_TIMER_LOCKED);
-	}
-else
-	{
-	if (!IS_TIMER_RUNNING(EVT_TIMER_LOCKED))
-		TIMER(5000, EVT_TIMER_LOCKED);
-	}
+TIMER(4000,EVT_ASK_MEAS);
 }
 
 
-static void fcnt_unlock(t_type_event event)
-{
-fcnt_blink_bad(event);
-pid_init();
-DEL_TIMER(EVT_ASK_MEAS);
-PUSH(EVT_ASK_MEAS);
-}
 
 
-static void fcnt_locked(t_type_event event)
-{
-static uint8_t cnt=0;
-
-uint16_t reference_mV=event.stv.data;
-int16_t  error = pid_get_absolute_error(reference_mV);
-
-// Le compteur va permettre une mesure régulière afin de verifier toutes les 3000ms que cela ne devie pas.
-cnt++;
-
-
-if (cnt>=100)
-	{
-	// Correctif fait, pas de vérification d'erreur avant 3 secondes.
-	cnt=0;
-	value_pwm -=4*error;
-	PUSH_D(EVT_SET_PWM,value_pwm );
-	}
-else
-	{
-	// Toutes les 3 secondes, l'erreur ne doit pas dépasser cette limite de 25, sinon refaire calibration.
-	if (abs(error)>40)
-		{
-		asm("nop");
-		PUSH(EVT_UNLOCKED);
-		return;
-		}
-	}
-
-TIMER(3000,EVT_ASK_MEAS);
-}
 
 
 

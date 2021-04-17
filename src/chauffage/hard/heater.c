@@ -6,6 +6,7 @@
  */
 #include <chauffage/hard/g_hard.h>
 #include <chauffage/hard/g_heater.h>
+#include "r_cg_timer.h"
 
 
 
@@ -30,14 +31,19 @@ void heater_setPwm(uint8_t pwm)
 	{
 	mirror_pwm_heat = pwm;
     R_TMR_KC0_Stop();
-    TKCDUTY02 = pwm;
+	uint32_t x = (uint32_t)_013F_TMKC_CYCLE0_VALUE*pwm;
+	x>>=8;
+    TKCDUTY02 = x&_013F_TMKC_CYCLE0_VALUE;
     R_TMR_KC0_Start();
 	}
 
 void heater_setFan(uint8_t pwm)
 	{
 	mirror_pwm_fan = pwm;
-    R_TMR_KC0_Stop();
-    TKCDUTY02 = pwm*32;
-    R_TMR_KC0_Start();
+	R_TMR_KB2_Stop();
+	uint32_t x = (uint32_t)_0C80_TMKB_DUTY21_VALUE*pwm;
+	x>>=8;
+    TKBCR21 = x&_0C80_TMKB_DUTY21_VALUE;
+    R_TMR_KB2_Start();
+    asm("nop");
     }

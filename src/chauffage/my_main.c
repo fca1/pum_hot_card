@@ -17,11 +17,38 @@
 #include "r_cg_serial.h"
 #include "r_cg_it.h"
 #include "g_comm.h"
-
+#include "g_tempPid.h"
 
 uint8_t identity=0xFF;
 uint64_t unique_serial_nber;
 
+
+static uint8_t fcnt_cross_serial_test(void)
+{
+uint8_t length;
+struct t_comm_emit msg;
+uint8_t length_msg = comm_build_msg_identity(&msg,identity,unique_serial_nber);
+while(g_uart1_tx_cnt);
+comm_flush1();
+R_UART1_Send((uint8_t*)&msg, length_msg);
+delay_ms(50);
+struct t_comm_rcve *p=compute_serial4(&length);
+if (!p)
+	return 0;
+if (!(p->header.cmd==ASK_IDENTITY) || !(unique_serial_nber==p->u.identity.identity))
+	return 0;
+while(g_uart4_tx_cnt);
+comm_flush4();
+R_UART4_Send((uint8_t*)&msg, length_msg);
+delay_ms(50);
+p=compute_serial1(&length);
+if (!p)
+	return 0;
+if (!(p->header.cmd==ASK_IDENTITY) || !(unique_serial_nber==p->u.identity.identity))
+	return 0;
+return 1;
+
+}
 
 
 
@@ -36,28 +63,40 @@ uint8_t length;
 struct t_comm_emit msg;
 if (identity==0xFF)
 	{
-	length = comm_build_msg_identity(&msg,identity,unique_serial_nber);
+	uint8_t length_msg = comm_build_msg_identity(&msg,identity,unique_serial_nber);
 	// Le module n'a pas d'identité, il en fait la demande sur les 2 voies.
-	if (!g_uart1_tx_cnt)
+	while(g_uart1_tx_cnt);
 		{
-		R_UART1_Send((uint8_t*)&msg, length);
-		delay_ms(20);
+		uint8_t length;
+		comm_flush1();
+		R_UART1_Send((uint8_t*)&msg, length_msg);
+		delay_ms(50);
 		struct t_comm_rcve *p=compute_serial1(&length);
 		// Si c'est le meme message, alors mettre l'identité a 0
 		if (p)
+			{
 			if ((p->header.cmd==ASK_IDENTITY) && (unique_serial_nber==p->u.identity.identity))
+				{
 				identity = 0;
 				return 1;
+				}
+			}
 		}
-	if (!g_uart4_tx_cnt)
+	while (g_uart4_tx_cnt);
 		{
-		R_UART4_Send((uint8_t*)&msg, length);
-		delay_ms(20);
+		uint8_t length;
+		comm_flush4();
+		R_UART4_Send((uint8_t*)&msg, length_msg);
+		delay_ms(50);
 		struct t_comm_rcve *p=compute_serial4(&length);
 		if (p)
+			{
 			if ((p->header.cmd==ASK_IDENTITY) && (unique_serial_nber==p->u.identity.identity))
+				{
 				identity = 0;
 				return 1;
+				}
+			}
 		}
 	return 0;
 	}
@@ -103,12 +142,49 @@ void my_main(void)
 {
 R_WDT_Restart();
 fcnt_init_hard();			// Test du hard
-while(!fcnt_wait_serial_mirror_for_identity());
+
+if (fcnt_cross_serial_test())
+	{
+	R_WDT_Restart();
+	for (uint8_t i=0;i<20;i++)
+		{
+		TOGGLE_LED_GREEN();
+		delay_ms(200);
+		TOGGLE_LED_GREEN();
+		TOGGLE_LED_RED();
+		delay_ms(200);
+		TOGGLE_LED_RED();
+		TOGGLE_LED_BLUE();
+		delay_ms(200);
+		TOGGLE_LED_BLUE();
+		}
+	R_WDT_Restart();
+	heater_setFan(254);
+	delay_ms(3000);
+	heater_setFan(170);
+	heater_setPwm(255);
+	R_WDT_Restart();
+	delay_ms(3000);
+	R_WDT_Restart();
+	delay_ms(3000);
+	heater_setPwm(0);
+	}
+
+
+
+while(!fcnt_wait_serial_mirror_for_identity())
+	{
+	TOGGLE_LED_GREEN();
+	comm_manage_serial();
+	}
+SET_LED_GREEN(0);
 
 
 // Lancer le PID
 task_init_hard();
 timerTaskInit();
+status.actif = 1;
+pid_refresh(&params);
 while (1U)
 {
 save_time = tick_1ms;

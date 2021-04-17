@@ -5,8 +5,6 @@
  *      Author: rapha
  */
 
-#ifndef chauffage_HARD_G_HEATER_H_
-#define chauffage_HARD_G_HEATER_H_
 
 #include <stdint.h>
 
@@ -19,4 +17,3 @@ extern uint8_t heater_get_heat(void);
 
 
 
-#endif /* chauffage_HARD_G_HEATER_H_ */

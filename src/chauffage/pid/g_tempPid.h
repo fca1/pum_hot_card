@@ -15,6 +15,7 @@ extern struct t_set_params	params;
 extern struct t_status		status;
 
 
-extern void pid_refresh(void);
+extern void pid_refresh(struct t_set_params *ptr);
+extern struct t_status *  pid_refresh_status(void);
 
 #endif /* CHAUFFAGE_PID_G_TEMPPID_H_ */

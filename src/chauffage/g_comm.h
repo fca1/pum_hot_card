@@ -15,6 +15,8 @@ extern uint8_t comm_build_msg_identity(struct t_comm_emit *ptrEmit,uint8_t ident
 extern uint8_t comm_build_msg_status(struct t_comm_emit *ptrEmit,uint8_t identity,struct t_status *p);
 
 
+extern void comm_flush1(void);
+extern void comm_flush4(void);
 
 
 

@@ -21,7 +21,7 @@ static const struct t_pid pid_values_init =
 };
 
 
-static struct t_pid pid_values;
+struct t_pid pid_values;
 
 
 static int32_t  error_previous=0;
@@ -41,9 +41,10 @@ index_rw=index_rw%(sizeof(tbl_error_previous)/sizeof(tbl_error_previous[0]));
 return result;
 }
 
-void pid_reset(void)
+void pid_reset(const struct t_pid * p_init)
 {
-pid_values=pid_values_init;
+pid_values=*p_init;
+pid_init();
 }
 
 
@@ -51,13 +52,14 @@ void pid_init(void)
 {
 error_previous=0;
 result=0;
+error_previous=0;
 memset(tbl_error_previous,0,sizeof(tbl_error_previous));
 
 }
 
 const int16_t pid_get_absolute_error(int16_t measured_deciDeg)
 {
-return 	measured_deciDeg-pid_values.consigne_deciDeg;
+return 	pid_values.consigne_deciDeg-measured_deciDeg;
 }
 
 

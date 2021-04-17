@@ -22,7 +22,7 @@ struct t_rotary_byte buf_rcve_uart4;
 // Timeout management
 static volatile uint32_t save_tick_ms_1;
 static volatile uint32_t save_tick_ms_4;
-#define TMO_MS_INTER_CHAR		10
+#define TMO_MS_INTER_CHAR		40
 
 
 static struct t_comm_rcve rcve1;
@@ -53,12 +53,19 @@ if (tick_1ms-save_tick_ms_1>TMO_MS_INTER_CHAR)		// TMO
 	{
 	index1=0;
 	}
+uint8_t *ptr1 = ((uint8_t*)(&rcve1));
 while(circularGetLen(&buf_rcve_uart1))
 	{
-	uint8_t *ptr1 = ((uint8_t*)(&rcve1));
 	save_tick_ms_1 = tick_1ms;
-	ptr1[index1++]=*circularPop(&buf_rcve_uart1);
-	if (index1>=sizeof(rcve1)) index1--;
+	ptr1[index1]=*circularPop(&buf_rcve_uart1);
+	if (ptr1[index1]==3)
+		{
+		asm("nop");
+		asm("nop");
+		}
+
+
+	if (index1<sizeof(rcve1)) index1++;
 	}
 }
 
@@ -68,12 +75,12 @@ if (tick_1ms-save_tick_ms_4>TMO_MS_INTER_CHAR)		// TMO
 	{
 	index4=0;
 	}
+uint8_t *ptr4 = ((uint8_t*)(&rcve4));
 while(circularGetLen(&buf_rcve_uart4))
 	{
-	uint8_t *ptr4 = ((uint8_t*)(&rcve4));
 	save_tick_ms_4 = tick_1ms;
-	ptr4[index4++]=*circularPop(&buf_rcve_uart4);
-	if (index4>=sizeof(rcve4)) index4--;
+	ptr4[index4]=*circularPop(&buf_rcve_uart4);
+	if (index4<sizeof(rcve4)) index4++;
 	}
 }
 
@@ -84,15 +91,18 @@ struct t_comm_rcve * compute_serial1(uint8_t *length)
 {
 fill_serial1();
 uint8_t *ptr1 = ((uint8_t*)(&rcve1));
-if ((rcve1.header.stx==STX) && index1>=sizeof(rcve1.header))
+if ((rcve1.header.stx==STX) && index1>=(sizeof(rcve1.header)+sizeof(rcve1.footer)))
 	{
 	for (uint8_t i=0;i<index1;i++)
 		{
 		if ((ptr1[i]==ETX) && i+1<index1)
 			{
 			if (fcnt_compute_chk(ptr1,i+1)==ptr1[i+1])
-				*length = i+1;
+				{
+				*length = index1;
+				index1=0;
 				return &rcve1;
+				}
 			}
 		}
 	}
@@ -104,15 +114,18 @@ struct t_comm_rcve* compute_serial4(uint8_t *length)
 {
 fill_serial4();
 uint8_t *ptr4 = ((uint8_t*)(&rcve4));
-if ((rcve4.header.stx==STX) && index4>=sizeof(rcve4.header))
+if ((rcve4.header.stx==STX) && index4>=(sizeof(rcve4.header)+sizeof(rcve4.footer)))
 	{
 	for (uint8_t i=0;i<index4;i++)
 		{
 		if ((ptr4[i]==ETX) && i+1<index4)
 			{
 			if (fcnt_compute_chk(ptr4,i+1)==ptr4[i+1])
-				*length = i+1;
+				{
+				*length = index4;
+				index4=0;
 				return &rcve4;
+				}
 			}
 		}
 	}
@@ -152,11 +165,6 @@ return size+1;
 
 
 
-static void fcnt_refresh(void)
-{
-
-}
-
 
 static void fcnt_emit(struct t_comm_emit *p,uint8_t serial,uint8_t length)
 {
@@ -165,43 +173,84 @@ p->header.adddr = identity;
 
 if (serial==1)
 	{
+	while (g_uart1_tx_cnt);
 	R_UART1_Send((uint8_t*)p, length);
 	}
 else
 	{
+	while (g_uart4_tx_cnt);
 	R_UART4_Send((uint8_t*)p, length);
 	}
 }
 
 
 
-static void fcnt_decode_msg(struct t_comm_rcve *p,uint8_t serial)
+static uint8_t  fcnt_decode_msg(struct t_comm_rcve *p,uint8_t serial)
 {
 uint8_t length;
 switch(p->header.cmd)
 	{
 	case	GET_STATUS:
+		if (p->header.adddr!=identity && identity!=0xFF)
+			return 0;
 		// Renvoie le status
-		//emit_buffer = comm_build_msg_status(
-		break;
+		length= comm_build_msg_status(&emit_buffer,identity,pid_refresh_status());
+		fcnt_emit(&emit_buffer,serial,length);
+		return 1;
 	case ENABLE_HEAT:
+		if (p->header.adddr!=identity && identity!=0xFF)
+			return 0;
 		if (params.enabled)
 			{
-			status.actif = 1;
+			status.actif = p->u.enable.actif;
 			}
-		break;
+		length= comm_build_msg_status(&emit_buffer,identity,pid_refresh_status());
+		fcnt_emit(&emit_buffer,serial,length);
+		return 1;
 	case SET_PARAMS:
-		params = p->u.params;
-		pid_refresh();
-		break;
+		if (p->header.adddr!=identity && identity!=0xFF)
+			return 0;
+		pid_refresh(&p->u.params);
+		length= comm_build_msg_status(&emit_buffer,identity,pid_refresh_status());
+		fcnt_emit(&emit_buffer,serial,length);
+		return 1;
 	case ASK_IDENTITY:
-		// Renvoie l'identite.
-		break;
+		// Renvoie l'identite. Si l'identite de cette carte est connue. Renvoyer l'identite.
+		if (identity==0xFF)
+			{
+			// Cette carte ne connait pas son identite.
+			if (p->header.adddr!=0xFF)
+				{
+				identity = p->header.adddr+1;		// L'identite vient d'etre determine.
+				return 1;
+				}
+			}
+		else
+			{
+			uint8_t l = comm_build_msg_identity(&emit_buffer, identity, 0);
+			fcnt_emit(&emit_buffer,serial,l);
+			return 1;
+			}
 	}
-
-
+return 0;
 }
 
+
+void comm_flush1(void)
+{
+
+}
+void comm_flush4(void)
+{
+while(circularGetLen(&buf_rcve_uart1))
+	{
+	circularPop(&buf_rcve_uart1);
+	}
+while(circularGetLen(&buf_rcve_uart4))
+	{
+	circularPop(&buf_rcve_uart4);
+	}
+}
 
 
 /**
@@ -211,30 +260,47 @@ void comm_manage_serial(void)
 {
 struct t_comm_rcve *p;
 uint8_t length;
-p=compute_serial1(&length);
-if (p->header.adddr==identity)
+if (identity==0xff)
 	{
-	// C'est pour la carte, ne pas transmettre.
-	fcnt_decode_msg(p,1);
+	//# pas d'identite, demander l'identite
+	struct t_comm_emit mm;
+	uint8_t ll = comm_build_msg_identity(&mm, identity, unique_serial_nber);
+	comm_flush1();
+	comm_flush4();
+	fcnt_emit(&mm,1,ll);
+	fcnt_emit(&mm,4,ll);
+	delay_ms(20);
 	}
-else
+
+p=compute_serial1(&length);
+if (p)
 	{
-	// renvoyer pour un autre
-	while (!g_uart4_tx_cnt);
-	R_UART4_Send((uint8_t*)p, length);
+	if (!fcnt_decode_msg(p,1))
+		{
+		// Si le distant a une adresse et que soit meme a une adresse, transferer le message.
+		if ((p->header.adddr!=0xff) && identity!=0xFF)
+			{
+			while (g_uart4_tx_cnt);
+			R_UART4_Send((uint8_t*)p, length);
+			}
+		}
+
 	}
 p=compute_serial4(&length);
-if (p->header.adddr==identity)
+if (p)
 	{
-	// C'est pour la carte, ne pas transmettre.
-	fcnt_decode_msg(p,4);
+	if (!fcnt_decode_msg(p,4))
+		{
+		// Si le distant a une adresse et que soit meme a une adresse, transferer le message.
+		if ((p->header.adddr!=0xff) && identity!=0xFF)
+			{
+			while (g_uart1_tx_cnt);
+			R_UART1_Send((uint8_t*)p, length);
+			}
+		}
+
 	}
-else
-	{
-	// renvoyer pour un autre
-	while (!g_uart1_tx_cnt);
-	R_UART1_Send((uint8_t*)p, length);
-	}
+
 }
 
 
