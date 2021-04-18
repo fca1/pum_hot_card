@@ -31,9 +31,9 @@ void heater_setPwm(uint8_t pwm)
 	{
 	mirror_pwm_heat = pwm;
     R_TMR_KC0_Stop();
-	uint32_t x = (uint32_t)_013F_TMKC_CYCLE0_VALUE*pwm;
+	uint32_t x = (uint32_t)_7CFF_TMKC_CYCLE0_VALUE*pwm;
 	x>>=8;
-    TKCDUTY02 = x&_013F_TMKC_CYCLE0_VALUE;
+    TKCDUTY02 = x&_7CFF_TMKC_CYCLE0_VALUE;
     R_TMR_KC0_Start();
 	}
 
@@ -41,9 +41,9 @@ void heater_setFan(uint8_t pwm)
 	{
 	mirror_pwm_fan = pwm;
 	R_TMR_KB2_Stop();
-	uint32_t x = (uint32_t)_0C80_TMKB_DUTY21_VALUE*pwm;
+	uint32_t x = (uint32_t)_0C7F_TMKB_CYCLE20_VALUE*pwm;
 	x>>=8;
-    TKBCR21 = x&_0C80_TMKB_DUTY21_VALUE;
+    TKBCR21 = x&_0C7F_TMKB_CYCLE20_VALUE;
     R_TMR_KB2_Start();
     asm("nop");
     }

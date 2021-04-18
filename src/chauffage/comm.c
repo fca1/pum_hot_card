@@ -216,7 +216,7 @@ switch(p->header.cmd)
 		return 1;
 	case ASK_IDENTITY:
 		// Renvoie l'identite. Si l'identite de cette carte est connue. Renvoyer l'identite.
-		if (identity==0xFF)
+		if (identity==0xFF && p->u.identity.identity!=unique_serial_nber)
 			{
 			// Cette carte ne connait pas son identite.
 			if (p->header.adddr!=0xFF)
@@ -227,7 +227,7 @@ switch(p->header.cmd)
 			}
 		else
 			{
-			uint8_t l = comm_build_msg_identity(&emit_buffer, identity, 0);
+			uint8_t l = comm_build_msg_identity(&emit_buffer, identity, unique_serial_nber);
 			fcnt_emit(&emit_buffer,serial,l);
 			return 1;
 			}

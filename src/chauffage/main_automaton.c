@@ -131,14 +131,14 @@ static void fcnt_set_pwm(t_type_event event)
 event.stv.data = MINV(255,event.stv.data);
 uint8_t pwm = MINV(event.stv.data,params.pwm_max);
 pwm = MAXV(pwm,params.pwm_min);
-heater_setPwm(pwm);
 if (!status.actif || !params.enabled)
 	{
 	pwm=0;
 	heater_setPwm(pwm);
-	heater_setFan(0);
+	heater_setFan(params.enabled ? params.fan_min: 0);
 	return;
 	}
+heater_setPwm(pwm);
 uint16_t xx= (params.fan_max-params.fan_min)*pwm;
 xx = params.fan_min+xx/256;
 xx = MINV(xx,params.fan_max);
@@ -170,7 +170,7 @@ pid_reset(&pid_values);
 PUSH(EVT_ASK_MEAS);
 PUSH(EVT_BAD);
 DEL_TIMER(EVT_BLINK)
-TIMER(4000,EVT_BLINK);
+TIMER(1,EVT_BLINK);
 
 }
 
@@ -193,11 +193,13 @@ if (!params.leds_report)
 	return;
 	}
 if (!status.actif || !params.enabled)
-		{
-		TOGGLE_LED_GREEN()
-		TIMER(4000,EVT_BLINK);
-		return;
-		}
+	{
+	TOGGLE_LED_GREEN()
+	SET_LED_RED(0);
+	SET_LED_BLUE(0);
+	TIMER(4000,EVT_BLINK);
+	return;
+	}
 else
 	{
 	flg_on = !flg_on;

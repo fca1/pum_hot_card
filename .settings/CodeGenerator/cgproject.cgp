@@ -110,8 +110,8 @@
     <PIOR11Value Name="PIOR11Value" Text="0" />
     <PIOR12Value Name="PIOR12Value" Text="0" />
     <PIOR13Value Name="PIOR13Value" Text="0" />
-    <ProjectName Name="PrjName" Text="pum_hot_card_V100" />
-    <ProjectPath Name="PrjPath" Text="D:\Dropbox\EPI_ENO_SHARED\PUM\chauffage_casier\soft\pum_hot_card_V100" />
+    <ProjectName Name="PrjName" Text="pum_hot_card" />
+    <ProjectPath Name="PrjPath" Text="D:\Dropbox\EPI_ENO_SHARED\PUM\chauffage_casier\soft\pum_hot_card" />
     <ProjectKind Name="PrjKind" Text="Project78K0R" />
     <DeviceName Name="DeviceName" Fixed="" Text="RL78I1A" />
     <CPUCoreType Name="CPUCoreType" Fixed="" Text="0" />
@@ -136,7 +136,7 @@
     <CodePath Name="CodePath" Text=".\" />
     <ReportType Name="ReportType" Text="Html" />
     <CreationDateType Name="CreationDateType" Text="OutputDate" />
-    <GenerateType Name="GenerateType" Text="Merge" />
+    <GenerateType Name="GenerateType" Text="Keep" />
     <APIOutputType Name="APIOutputType" Text="Default" />
     <HasRRMRam Name="HasRRMRam" Text="" />
     <PrjVersion Name="PrjVersion" Text="1.2.0.1" />
@@ -1779,9 +1779,9 @@
           <setting name="Initial0" value="0" />
           <setting name="Initial1" value="0" />
           <setting name="txtCycle" value="100" />
-          <setting name="txtDuty0" value="100" />
-          <setting name="txtDuty1" value="50" />
-          <setting name="txtDelay1" value="10" />
+          <setting name="txtDuty0" value="0" />
+          <setting name="txtDuty1" value="0" />
+          <setting name="txtDelay1" value="0" />
           <setting name="CycleScale" value="1" />
           <setting name="DelayScale" value="1" />
           <setting name="txtDelay0" value="10" />
@@ -1849,14 +1849,14 @@
         <setting name="Pin2" value="used" />
         <setting name="Pin1" value="unused" />
         <setting name="Pin0" value="unused" />
-        <setting name="txtDuty5" value="50" />
-        <setting name="txtDuty4" value="50" />
-        <setting name="txtDuty3" value="50" />
+        <setting name="txtDuty5" value="0" />
+        <setting name="txtDuty4" value="0" />
+        <setting name="txtDuty3" value="0" />
         <setting name="txtDuty2" value="25" />
-        <setting name="txtDuty1" value="50" />
-        <setting name="txtDuty0" value="50" />
-        <setting name="txtCycle" value="10" />
-        <setting name="CycleScale" value="1" />
+        <setting name="txtDuty1" value="0" />
+        <setting name="txtDuty0" value="0" />
+        <setting name="txtCycle" value="1" />
+        <setting name="CycleScale" value="0" />
         <setting name="Interrupt" value="unused" />
         <setting name="Interrupt_priority" value="3" />
       </TMKC0>

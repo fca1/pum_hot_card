@@ -33,7 +33,7 @@ int16_t sensorSI7053_read_decideg(void)
 	i2c_read_byte(0x80);
 	i2c_read_bytes(0x80, sizeof(tblR), tblR);
 	uint16_t raw = (tblR[0]<<8)+tblR[1];
-	uint32_t tp= (17572L/2)*raw;
+	int32_t tp= (17572L/2)*raw;
 	tp/=32768L;
 	tp-=4685;
 	tp/=10;

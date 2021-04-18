@@ -23,7 +23,7 @@
 * Device(s)    : R5F107DE
 * Tool-Chain   : GCCRL78
 * Description  : This file implements device driver for TAU module.
-* Creation Date: 11/04/2021
+* Creation Date: 17/04/2021
 ***********************************************************************************************************************/
 
 #ifndef TAU_H
@@ -660,27 +660,27 @@ Macro definitions
 /* 16-bit compare register (TKBCR20) */
 #define _0C7F_TMKB_CYCLE20_VALUE                (0x0C7FU)
 /* 16-bit compare register (TKBCR21) */
-#define _0C80_TMKB_DUTY21_VALUE                 (0x0C80U)
+#define _0000_TMKB_DUTY21_VALUE                 (0x0000U)
 /* 16-bit compare register (TKBCR22) */
-#define _0140_TMKB_DELAY22_VALUE                 (0x0140U)
+#define _0000_TMKB_DELAY22_VALUE                 (0x0000U)
 /* 16-bit compare register (TKBCR23) */
-#define _0780_TMKB_DUTY23_VALUE                (0x0780U)
+#define _0000_TMKB_DUTY23_VALUE                (0x0000U)
 /* 16-bit timer KB trigger compare register (TKBTGCR2) */
 #define _0C80_TMKB_TKBTGCR2_VALUE               (0x0C80U)
 /* 16-bit compare register (TKCCR0) */
-#define _013F_TMKC_CYCLE0_VALUE                 (0x013FU)
+#define _7CFF_TMKC_CYCLE0_VALUE                 (0x7CFFU)
 /* 16-bit compare register (TKCDUTY0) */
-#define _00A0_TMKC_DUTY0_VALUE                  (0x00A0U)
+#define _0000_TMKC_DUTY0_VALUE                  (0x0000U)
 /* 16-bit compare register (TKCDUTY1) */
-#define _00A0_TMKC_DUTY1_VALUE                  (0x00A0U)
+#define _0000_TMKC_DUTY1_VALUE                  (0x0000U)
 /* 16-bit compare register (TKCDUTY2) */
-#define _0050_TMKC_DUTY2_VALUE                  (0x0050U)
+#define _1F40_TMKC_DUTY2_VALUE                  (0x1F40U)
 /* 16-bit compare register (TKCDUTY3) */
-#define _00A0_TMKC_DUTY3_VALUE                  (0x00A0U)
+#define _0000_TMKC_DUTY3_VALUE                  (0x0000U)
 /* 16-bit compare register (TKCDUTY4) */
-#define _00A0_TMKC_DUTY4_VALUE                  (0x00A0U)
+#define _0000_TMKC_DUTY4_VALUE                  (0x0000U)
 /* 16-bit compare register (TKCDUTY5) */
-#define _00A0_TMKC_DUTY5_VALUE                  (0x00A0U)
+#define _0000_TMKC_DUTY5_VALUE                  (0x0000U)
 
 /***********************************************************************************************************************
 Typedef definitions

@@ -70,7 +70,8 @@ if (identity==0xFF)
 		uint8_t length;
 		comm_flush1();
 		R_UART1_Send((uint8_t*)&msg, length_msg);
-		delay_ms(50);
+		while(g_uart1_tx_cnt);
+		delay_ms(1);
 		struct t_comm_rcve *p=compute_serial1(&length);
 		// Si c'est le meme message, alors mettre l'identité a 0
 		if (p)
@@ -78,6 +79,7 @@ if (identity==0xFF)
 			if ((p->header.cmd==ASK_IDENTITY) && (unique_serial_nber==p->u.identity.identity))
 				{
 				identity = 0;
+				SET_LED_GREEN(0);
 				return 1;
 				}
 			}
@@ -87,13 +89,15 @@ if (identity==0xFF)
 		uint8_t length;
 		comm_flush4();
 		R_UART4_Send((uint8_t*)&msg, length_msg);
-		delay_ms(50);
+		while(g_uart4_tx_cnt);
+		delay_ms(1);
 		struct t_comm_rcve *p=compute_serial4(&length);
 		if (p)
 			{
 			if ((p->header.cmd==ASK_IDENTITY) && (unique_serial_nber==p->u.identity.identity))
 				{
 				identity = 0;
+				SET_LED_GREEN(0);
 				return 1;
 				}
 			}
@@ -146,7 +150,7 @@ fcnt_init_hard();			// Test du hard
 if (fcnt_cross_serial_test())
 	{
 	R_WDT_Restart();
-	for (uint8_t i=0;i<20;i++)
+	for (uint8_t i=0;i<6;i++)
 		{
 		TOGGLE_LED_GREEN();
 		delay_ms(200);
@@ -157,8 +161,8 @@ if (fcnt_cross_serial_test())
 		TOGGLE_LED_BLUE();
 		delay_ms(200);
 		TOGGLE_LED_BLUE();
+		R_WDT_Restart();
 		}
-	R_WDT_Restart();
 	heater_setFan(254);
 	delay_ms(3000);
 	heater_setFan(170);
@@ -172,28 +176,33 @@ if (fcnt_cross_serial_test())
 
 
 
-while(!fcnt_wait_serial_mirror_for_identity())
-	{
-	TOGGLE_LED_GREEN();
-	comm_manage_serial();
-	}
-SET_LED_GREEN(0);
-
-
 // Lancer le PID
-task_init_hard();
 timerTaskInit();
+task_init_hard();
 status.actif = 1;
 pid_refresh(&params);
+
+
+
 while (1U)
 {
 save_time = tick_1ms;
 while(save_time == tick_1ms)
 	{
+	if(!fcnt_wait_serial_mirror_for_identity())
+		{
+		TOGGLE_LED_GREEN();
+		}
 	ts_smart_tick_automaton();
 	comm_manage_serial();
 	}
-timerTask_tick();
+while(save_time != tick_1ms)
+	{
+	timerTask_tick();
+	ts_smart_tick_automaton();
+	save_time++;
+	}
+
 R_WDT_Restart();
 }
 
