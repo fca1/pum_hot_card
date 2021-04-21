@@ -19,12 +19,12 @@ struct t_set_params			params =
 .fan_min=0,
 .fan_max=255,
 .pwm_min=00,
-.pwm_max=210,
+.pwm_max=255,
 .leds_report=1,
 
-.pid_p=0x80000,
+.pid_p=0xA0000,
 .pid_i=0x20000,
-.pid_d=0,
+.pid_d=0x08000,
 };
 
 

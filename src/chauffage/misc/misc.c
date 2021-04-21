@@ -13,11 +13,11 @@
 
 #include <chauffage/misc/g_misc.h>
 
-volatile uint32_t tick_1ms;
+volatile t_task_timer_cnt tick_1ms;
 
-void delay_ms(uint32_t delay_ms)
+void delay_ms(t_task_timer_cnt delay_ms)
 {
-uint32_t tick_1ms_save =tick_1ms;
+t_task_timer_cnt tick_1ms_save =tick_1ms;
 // Attendre 5 secondes avant de recommencer
 while (tick_1ms - tick_1ms_save < delay_ms)
 	;

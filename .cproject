@@ -16,13 +16,13 @@
 			<storageModule moduleId="com.renesas.cdt.managedbuild.core.toolchainInfo">
 				<option id="toolchain.id" value="RENESAS_GCC_RL78"/>
 				<option id="toolchain.version" value="4.9.2.201902"/>
-				<option id="toolchain.enable" value="false"/>
+				<option id="toolchain.enable" value="true"/>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf *.lst *.lis *.lpp *.map" description="" id="com.renesas.cdt.managedbuild.gcc.rl78.configuration.debug.61371453" name="HardwareDebug" parent="com.renesas.cdt.managedbuild.gcc.rl78.configuration.debug">
 					<folderInfo id="com.renesas.cdt.managedbuild.gcc.rl78.configuration.debug.61371453." name="/" resourcePath="">
 						<toolChain id="com.renesas.cdt.managedbuild.gcc.rl78.toolchain.debug.1953161779" name="GCC for Renesas RL78" superClass="com.renesas.cdt.managedbuild.gcc.rl78.toolchain.debug">
-							<option id="com.renesas.cdt.managedbuild.gcc.core.option.optimization.optimizationLevel.1350289992" name="Optimization Level" superClass="com.renesas.cdt.managedbuild.gcc.core.option.optimization.optimizationLevel" useByScannerDiscovery="true" value="com.renesas.cdt.managedbuild.gcc.core.option.optimization.optimizationLevel.none" valueType="enumerated"/>
+							<option id="com.renesas.cdt.managedbuild.gcc.core.option.optimization.optimizationLevel.1350289992" name="Optimization Level" superClass="com.renesas.cdt.managedbuild.gcc.core.option.optimization.optimizationLevel" useByScannerDiscovery="true" value="com.renesas.cdt.managedbuild.gcc.core.option.optimization.optimizationLevel.optimize" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.core.option.optimization.fdatasections.869637722" name="Data sections (-fdata-sections)" superClass="com.renesas.cdt.managedbuild.gcc.core.option.optimization.fdatasections" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.core.option.debug.debugFormat.793548993" name="Debug format" superClass="com.renesas.cdt.managedbuild.gcc.core.option.debug.debugFormat" useByScannerDiscovery="true" value="com.renesas.cdt.managedbuild.gcc.core.option.debug.debugFormat.Default" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.core.option.addtools.printsize.2074990275" name="Create Print Size" superClass="com.renesas.cdt.managedbuild.gcc.core.option.addtools.printsize" useByScannerDiscovery="false" value="true" valueType="boolean"/>

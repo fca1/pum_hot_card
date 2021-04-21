@@ -13,6 +13,7 @@
 #include <string.h>
 #include "g_tempPid.h"
 #include "r_cg_serial.h"
+#include "g_automger.h"
 
 
 // Utilise par la liaison serie en reception.
@@ -20,9 +21,9 @@ struct t_rotary_byte buf_rcve_uart1;
 struct t_rotary_byte buf_rcve_uart4;
 
 // Timeout management
-static volatile uint32_t save_tick_ms_1;
-static volatile uint32_t save_tick_ms_4;
-#define TMO_MS_INTER_CHAR		40
+static volatile t_task_timer_cnt save_tick_ms_1;
+static volatile t_task_timer_cnt save_tick_ms_4;
+#define TMO_MS_INTER_CHAR		40L
 
 
 static struct t_comm_rcve rcve1;

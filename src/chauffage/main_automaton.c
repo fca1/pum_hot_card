@@ -183,49 +183,90 @@ static void fcnt_stop_asser(t_type_event event)
 static void fcnt_blink(t_type_event event)
 {
 static uint8_t flg_on = 0;
-
-if (!params.leds_report)
+switch(params.leds_report)
 	{
-	SET_LED_GREEN(0);
-	SET_LED_RED(0);
-	SET_LED_BLUE(0);
-	TIMER(4000,EVT_BLINK);
-	return;
-	}
-if (!status.actif || !params.enabled)
-	{
-	TOGGLE_LED_GREEN()
-	SET_LED_RED(0);
-	SET_LED_BLUE(0);
-	TIMER(4000,EVT_BLINK);
-	return;
-	}
-else
-	{
-	flg_on = !flg_on;
-	if (!flg_on)
-		{
+	case E_LED_OFF:
 		SET_LED_GREEN(0);
 		SET_LED_RED(0);
 		SET_LED_BLUE(0);
-		TIMER(300,EVT_BLINK);
+		TIMER(4000,EVT_BLINK);
 		return;
-		}
-	int16_t error = pid_get_error();
-	// Plus l'erreur est grande, plus le ON sera long
-	if (error>0)
+	case E_LED_ON:
 		{
-		SET_LED_BLUE(0)
-		SET_LED_RED(1);
-		TIMER(MINV(4000,error*10),EVT_BLINK);
+		if (!status.actif || !params.enabled)
+			{
+			TOGGLE_LED_GREEN()
+			SET_LED_RED(0);
+			SET_LED_BLUE(0);
+			TIMER(4000,EVT_BLINK);
+			return;
+			}
+		else
+			{
+			flg_on = !flg_on;
+			if (!flg_on)
+				{
+				SET_LED_GREEN(0);
+				SET_LED_RED(0);
+				SET_LED_BLUE(0);
+				TIMER(300,EVT_BLINK);
+				return;
+				}
+			int16_t error = pid_get_error();
+			// Plus l'erreur est grande, plus le ON sera long
+			if (error>0)
+				{
+				SET_LED_BLUE(0)
+				SET_LED_RED(1);
+				TIMER(MINV(4000,error*10),EVT_BLINK);
+				}
+			else
+				{
+				SET_LED_BLUE(1)
+				SET_LED_RED(0);
+				TIMER(MINV(4000,-error*10),EVT_BLINK);
+				}
+			}
 		}
-	else
+		return;
+	case E_LED_LOW:
 		{
-		SET_LED_BLUE(1)
-		SET_LED_RED(0);
-		TIMER(MINV(4000,-error*10),EVT_BLINK);
+		flg_on = !flg_on;
+		if (!status.actif || !params.enabled)
+			{
+			SET_LED_RED(0);
+			SET_LED_BLUE(0);
+			SET_LED_GREEN(0);
+			return;
+			}
+		if (!flg_on)
+			{
+			SET_LED_GREEN(0);
+			SET_LED_RED(0);
+			SET_LED_BLUE(0);
+			TIMER(3000,EVT_BLINK);
+			return;
+			}
+		int16_t error = pid_get_error();
+		// Plus l'erreur est grande, plus le ON sera long
+		if (error>0)
+			{
+			SET_LED_BLUE(0)
+			SET_LED_RED(1);
+			TIMER(MINV(400,error),EVT_BLINK);
+			}
+		else
+			{
+			SET_LED_BLUE(1)
+			SET_LED_RED(0);
+			TIMER(MINV(400,-error),EVT_BLINK);
+			}
 		}
+
+
 	}
+
+
 }
 
 

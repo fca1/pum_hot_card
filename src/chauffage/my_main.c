@@ -140,8 +140,8 @@ static void fcnt_init_hard(void)
 
 
 
-
 volatile t_task_timer_cnt save_time;
+
 void my_main(void)
 {
 R_WDT_Restart();
@@ -175,7 +175,6 @@ if (fcnt_cross_serial_test())
 	}
 
 
-
 // Lancer le PID
 timerTaskInit();
 task_init_hard();
@@ -196,7 +195,7 @@ while(save_time == tick_1ms)
 	ts_smart_tick_automaton();
 	comm_manage_serial();
 	}
-while(save_time != tick_1ms)
+while(save_time < tick_1ms)
 	{
 	timerTask_tick();
 	ts_smart_tick_automaton();

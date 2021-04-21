@@ -26,6 +26,14 @@ struct t_footer
 	uint8_t chk;
 };
 
+enum e_report_led
+{
+E_LED_OFF,
+E_LED_LOW,
+E_LED_ON,
+
+};
+
 
 struct t_enable
 {
@@ -40,7 +48,7 @@ uint8_t fan_min;
 uint8_t fan_max;
 uint8_t pwm_min;
 uint8_t pwm_max;
-uint8_t leds_report;
+enum e_report_led leds_report;
 
 uint32_t pid_p;
 uint32_t pid_i;

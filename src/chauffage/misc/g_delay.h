@@ -8,10 +8,10 @@
 #ifndef G_DELAY_H_
 #define G_DELAY_H_
 
-#include <stdint.h>
+#include "g_automger.h"
 
-extern volatile uint32_t tick_1ms;
-extern void delay_ms(uint32_t delay_ms);
+extern volatile t_task_timer_cnt tick_1ms;
+extern void delay_ms(t_task_timer_cnt delay_ms);
 extern void delay_us(uint32_t delay_us);
 
 

@@ -2,14 +2,15 @@
 #define __t_task_timer
 
 #include "r_cg_macrodriver.h"
+#include <stdint.h>
 
 
-typedef uint32_t t_timer_param ;
+typedef uint64_t t_timer_param ;
 
 typedef void (*t_ptrFcntVoidTaskTimer)(t_timer_param param);
 typedef uint8_t (*t_ptrFnctUint8TaskTimer)(t_timer_param param);
 
-typedef uint32_t        t_task_timer_cnt;
+typedef uint64_t        t_task_timer_cnt;
 
 typedef struct st_task_timer
 {
